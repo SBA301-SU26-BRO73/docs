@@ -19,9 +19,8 @@
 | 1.6 | Quên mật khẩu / Reset mật khẩu qua email | Tất cả | SHOULD |
 | 1.7 | Đổi mật khẩu (khi đã đăng nhập) | Tất cả | SHOULD |
 | 1.8 | Xem & cập nhật thông tin cá nhân (profile) | Tất cả | CORE |
-| 1.9 | Nhập số điện thoại → nhận OTP → đặt sân không cần tài khoản (Guest) | Guest | CORE |
-| 1.10 | Verify OTP qua SMS (xác thực số điện thoại khách vãng lai) | Guest | CORE |
-| 1.11 | Đăng nhập bằng Google (OAuth2) | Customer | BONUS |
+| 1.9 | Nhập số điện thoại → đặt sân không cần tài khoản (Guest) | Guest | CORE |
+| 1.10 | Đăng nhập bằng Google (OAuth2) | Customer | BONUS |
 
 ---
 
@@ -34,27 +33,26 @@
 | 2.3 | Xem danh sách tất cả Admin (chủ sân) trên hệ thống | Super Admin | CORE |
 | 2.4 | Khoá / mở khoá tài khoản bất kỳ | Super Admin | CORE |
 | 2.5 | Xem danh sách tất cả Customer | Super Admin | SHOULD |
-| 2.6 | Xem thống kê tổng quan toàn hệ thống (số venue, doanh thu, booking) | Super Admin | SHOULD |
+| 2.6 | Xem thống kê tổng quan toàn hệ thống (số branch, doanh thu, booking) | Super Admin | SHOULD |
 | 2.7 | Quản lý danh mục loại sân (thêm/sửa/xóa: cầu lông, pickleball...) | Super Admin | CORE |
+| 2.8 | Quản lý gói đăng ký (tháng/năm, theo số sân/cơ sở) | Super Admin | CORE |
 
 ---
 
-## 3. Venue & Branch — Quản lý cơ sở
+## 3. Branch — Quản lý cơ sở
 
 | # | Chức năng | Actor | Priority |
 |---|---|---|---|
-| 3.1 | Tạo Venue (thương hiệu/chuỗi sân) | Admin | CORE |
-| 3.2 | Sửa thông tin Venue | Admin | CORE |
-| 3.3 | Tạo Branch (cơ sở / địa điểm cụ thể thuộc Venue) | Admin | CORE |
-| 3.4 | Sửa thông tin Branch (địa chỉ, số điện thoại, giờ mở cửa) | Admin | CORE |
-| 3.5 | Cấu hình chính sách đặt cọc của Branch (bật/tắt, % cọc, thời hạn huỷ miễn phí) | Admin | CORE |
-| 3.6 | Upload ảnh Branch | Admin | SHOULD |
-| 3.7 | Xoá / vô hiệu hoá Branch | Admin | CORE |
-| 3.8 | Xem danh sách Branch của mình | Admin | CORE |
-| 3.9 | Xem chi tiết Branch (thông tin, sân, đánh giá) | Customer | CORE |
-| 3.10 | Tìm kiếm Branch theo tên / thành phố / loại sân | Customer | CORE |
-| 3.11 | Lọc Branch (theo khu vực, loại sân, giá, giờ trống hôm nay) | Customer | CORE |
-| 3.12 | Xem Branch trên bản đồ (Google Maps embed) | Customer | BONUS |
+| 3.1 | Tạo Branch (cơ sở / địa điểm kinh doanh) | Admin | CORE |
+| 3.2 | Sửa thông tin Branch (tên, địa chỉ, số điện thoại, giờ mở cửa) | Admin | CORE |
+| 3.3 | Cấu hình STK ngân hàng nhận tiền của Branch | Admin | CORE |
+| 3.4 | Upload ảnh Branch | Admin | SHOULD |
+| 3.5 | Xoá / vô hiệu hoá Branch | Admin | CORE |
+| 3.6 | Xem danh sách Branch của mình | Admin | CORE |
+| 3.7 | Xem chi tiết Branch (thông tin, sân, đánh giá) | Customer | CORE |
+| 3.8 | Tìm kiếm Branch theo tên / thành phố / loại sân | Customer | CORE |
+| 3.9 | Lọc Branch (theo khu vực, loại sân, giá, giờ trống hôm nay) | Customer | CORE |
+| 3.10 | Xem Branch trên bản đồ (Google Maps embed) | Customer | BONUS |
 
 ---
 
@@ -75,9 +73,11 @@
 
 ## 5. Time Slot — Cấu hình khung giờ
 
+> Hệ thống tạo slot cố định với chu kỳ **30 phút** (VD: 6:00, 6:30, 7:00...).
+
 | # | Chức năng | Actor | Priority |
 |---|---|---|---|
-| 5.1 | Tạo template khung giờ cho Court (VD: 6:00–7:00, 7:00–8:00...) | Admin | CORE |
+| 5.1 | Tạo template khung giờ cho Court (chu kỳ 30 phút, VD: 6:00–6:30, 6:30–7:00...) | Admin | CORE |
 | 5.2 | Sửa / xóa template khung giờ | Admin | CORE |
 | 5.3 | Áp dụng template cho nhiều Court cùng lúc | Admin | SHOULD |
 | 5.4 | Khoá slot cụ thể (bảo trì, nghỉ lễ) | Admin | SHOULD |
@@ -91,31 +91,34 @@
 |---|---|---|---|
 | 6.1 | Xem lịch sân trống theo ngày | Customer, Guest | CORE |
 | 6.2 | Chọn Court + chọn ngày + chọn slot (1 hoặc nhiều slot liên tiếp) | Customer, Guest | CORE |
-| 6.3 | Xem tóm tắt đơn trước khi xác nhận (slot, giá, deposit nếu có) | Customer, Guest | CORE |
-| 6.4 | Xác nhận đặt sân → chuyển sang bước thanh toán | Customer, Guest | CORE |
-| 6.5 | Huỷ đặt sân (theo policy: trước X tiếng) | Customer | CORE |
-| 6.6 | Xem lịch sử booking của bản thân | Customer | CORE |
-| 6.7 | Xem chi tiết booking (trạng thái, QR, thông tin sân) | Customer, Guest | CORE |
-| 6.8 | Tạo booking walk-in tại quầy (cho khách đến trực tiếp) | Staff, Admin | CORE |
-| 6.9 | Admin xem toàn bộ booking của Branch | Admin | CORE |
-| 6.10 | Admin / Staff sửa trạng thái booking thủ công | Admin, Staff | SHOULD |
-| 6.11 | Đặt sân theo tháng (monthly recurring booking) | Customer | BONUS |
-| 6.12 | Đặt nhóm (nhiều sân cùng lúc trong 1 booking) | Customer | BONUS |
+| 6.3 | Điền số điện thoại nếu chưa đăng nhập | Guest | CORE |
+| 6.4 | Giữ slot tạm thời 5 phút trong khi khách thực hiện thanh toán | System | CORE |
+| 6.5 | Xem tóm tắt đơn trước khi xác nhận (slot, giá, STK chủ sân) | Customer, Guest | CORE |
+| 6.6 | Huỷ đặt sân (theo policy: trước X tiếng) | Customer | CORE |
+| 6.7 | Xem lịch sử booking của bản thân | Customer | CORE |
+| 6.8 | Xem chi tiết booking (trạng thái, QR, thông tin sân) | Customer, Guest | CORE |
+| 6.9 | Tạo booking walk-in tại quầy (cho khách đến trực tiếp) | Staff, Admin | CORE |
+| 6.10 | Admin xem toàn bộ booking của Branch | Admin | CORE |
+| 6.11 | Admin / Staff sửa trạng thái booking thủ công | Admin, Staff | SHOULD |
+| 6.12 | Đặt sân theo tháng (monthly recurring booking) | Customer | BONUS |
+| 6.13 | Đặt nhóm (nhiều sân cùng lúc trong 1 booking) | Customer | BONUS |
 
 ---
 
 ## 7. Payment — Thanh toán
 
+> Toàn bộ thanh toán qua **chuyển khoản ngân hàng**. Không hỗ trợ tiền mặt, đặt cọc, hay cổng thanh toán (PayOS).
+
 | # | Chức năng | Actor | Priority |
 |---|---|---|---|
-| 7.1 | Thanh toán online qua PayOS (full payment) | Customer, Guest | CORE |
-| 7.2 | Thanh toán online qua PayOS (đặt cọc theo % do Admin cấu hình, trả phần còn lại tại sân) | Customer, Guest | CORE |
-| 7.3 | Ghi nhận thanh toán offline / tiền mặt tại sân | Staff, Admin | CORE |
-| 7.4 | Xem trạng thái thanh toán của booking | Customer, Guest, Admin | CORE |
-| 7.5 | Áp dụng mã voucher khi thanh toán | Customer | SHOULD |
-| 7.6 | Yêu cầu hoàn tiền (refund request) | Customer | SHOULD |
-| 7.7 | Admin duyệt / từ chối hoàn tiền | Admin | SHOULD |
-| 7.8 | Thực hiện hoàn tiền qua PayOS | Admin | SHOULD |
+| 7.1 | Hiển thị thông tin STK ngân hàng của chủ sân để khách chuyển khoản | System | CORE |
+| 7.2 | Upload ảnh bill / biên lai chuyển khoản | Customer, Guest | CORE |
+| 7.3 | Admin xác nhận / từ chối thanh toán (trong 10–15 phút) | Admin | CORE |
+| 7.4 | Tự động huỷ booking nếu session hold 5 phút hết hạn mà chưa upload bill | System | CORE |
+| 7.5 | Xem trạng thái thanh toán của booking | Customer, Guest, Admin | CORE |
+| 7.6 | Áp dụng mã voucher khi thanh toán | Customer | SHOULD |
+| 7.7 | Yêu cầu hoàn tiền (refund request) | Customer | SHOULD |
+| 7.8 | Admin duyệt / từ chối hoàn tiền | Admin | SHOULD |
 | 7.9 | Lịch sử giao dịch của Customer | Customer | SHOULD |
 | 7.10 | Lịch sử giao dịch của Branch | Admin | CORE |
 
@@ -141,9 +144,9 @@
 | 9.2 | Sửa thông tin / xóa Staff | Admin | CORE |
 | 9.3 | Xem danh sách Staff của Branch | Admin | CORE |
 | 9.4 | Xem lịch sân hôm nay (booking list theo ngày) | Staff | CORE |
-| 9.5 | Scan QR / nhập mã để check-in booking | Staff | CORE |
+| 9.5 | Scan QR / nhập mã để check-in booking cho khách | Staff | CORE |
 | 9.6 | Tạo walk-in booking tại quầy | Staff | CORE |
-| 9.7 | Ghi nhận thanh toán offline | Staff | CORE |
+| 9.7 | Checkout khi khách về → cập nhật trạng thái sân về trống | Staff | CORE |
 
 ---
 
@@ -152,8 +155,8 @@
 | # | Chức năng | Actor | Priority |
 |---|---|---|---|
 | 10.1 | Tự động tạo QR code khi booking được xác nhận | System | CORE |
-| 10.2 | Hiển thị QR code trong chi tiết booking | Customer | CORE |
-| 10.3 | Staff scan QR → hệ thống xác nhận check-in | Staff | CORE |
+| 10.2 | Hiển thị QR code trong chi tiết booking (khách xem trên điện thoại) | Customer, Guest | CORE |
+| 10.3 | Staff scan QR của khách → hệ thống xác nhận check-in | Staff | CORE |
 | 10.4 | Nhập mã booking thủ công thay thế scan (fallback) | Staff | SHOULD |
 
 ---
@@ -169,7 +172,7 @@
 | 11.5 | Sân được đặt nhiều nhất | Admin | SHOULD |
 | 11.6 | Giờ cao điểm (peak hours) | Admin | SHOULD |
 | 11.7 | Export báo cáo doanh thu ra CSV / Excel | Admin | SHOULD |
-| 11.8 | Tổng quan toàn hệ thống (số venue, doanh thu, booking) | Super Admin | SHOULD |
+| 11.8 | Tổng quan toàn hệ thống (số branch, doanh thu, booking) | Super Admin | SHOULD |
 
 ---
 
@@ -181,8 +184,9 @@
 | 12.2 | Email xác nhận huỷ sân | Customer | SHOULD |
 | 12.3 | Email nhắc lịch trước khi chơi (VD: trước 2h) | Customer | SHOULD |
 | 12.4 | Email thông báo kết quả duyệt tài khoản Admin | Admin | SHOULD |
-| 12.5 | In-app notification (thông báo trong ứng dụng) | Tất cả | BONUS |
-| 12.6 | Push notification (mobile) | Customer | BONUS |
+| 12.5 | Thông báo cho Admin khi có booking mới cần xác nhận thanh toán | Admin | CORE |
+| 12.6 | In-app notification (thông báo trong ứng dụng) | Tất cả | BONUS |
+| 12.7 | Push notification (mobile) | Customer | BONUS |
 
 ---
 
@@ -212,8 +216,8 @@
 
 | # | Chức năng | Actor | Priority |
 |---|---|---|---|
-| 15.1 | Cập nhật trạng thái slot real-time khi có người đặt (WebSocket) | Customer | BONUS |
-| 15.2 | Thông báo real-time cho Admin khi có booking mới | Admin | BONUS |
+| 15.1 | Cập nhật trạng thái slot real-time khi có người đặt / slot bị giữ (WebSocket) | Customer | BONUS |
+| 15.2 | Thông báo real-time cho Admin khi có booking mới cần xác nhận | Admin | BONUS |
 
 ---
 
@@ -230,10 +234,10 @@
 
 | Priority | Số chức năng |
 |---|---|
-| CORE | ~51 |
-| SHOULD | ~30 |
+| CORE | ~47 |
+| SHOULD | ~28 |
 | BONUS | ~18 |
-| **Tổng** | **~99** |
+| **Tổng** | **~93** |
 
 ---
 
