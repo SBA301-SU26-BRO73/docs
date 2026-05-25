@@ -24,32 +24,31 @@ main          ← production-ready, chỉ merge từ hotfix hoặc release
 
 ## 2. Branch Naming Convention
 
-**Format:** `{type}/{jira-ticket-id}_{short-description}`
+**Format:** `{type}/{short-description}`
 
 ```
-feature/SBA301-15_manage-product
-feature/SBA301-22_user-authentication
-hotfix/SBA301-31_fix-null-pointer-login
+feature/manage-branch
+feature/user-authentication
+hotfix/fix-null-pointer-login
 ```
 
 **Quy tắc:**
 - Chỉ dùng **chữ thường**, **dấu gạch ngang** (`-`) để nối từ
-- Không dùng dấu cách, dấu gạch dưới (ngoại trừ sau ticket ID), ký tự đặc biệt
-- Mô tả ngắn gọn, tối đa **4-5 từ**
-- Luôn có Jira ticket ID
+- Không dùng dấu cách, ký tự đặc biệt, viết hoa
+- Mô tả ngắn gọn, đủ hiểu là làm gì
 
 **Ví dụ đúng / sai:**
 
 ```bash
 # Đúng
-feature/SBA301-10_create-product-api
-hotfix/SBA301-55_fix-login-crash
+feature/manage-branch
+feature/user-authentication
+hotfix/fix-login-crash
 
 # Sai
-feature/CreateProductAPI      ← không có ticket ID
-feature/SBA301-10             ← không có mô tả
-Feature/SBA301-10_Create      ← viết hoa
-feature/sba301-10 add user    ← có dấu cách
+feature/ManageBranch      ← viết hoa
+feature/manage branch     ← có dấu cách
+feature/x                 ← quá ngắn, không rõ nghĩa
 ```
 
 ---
@@ -83,28 +82,33 @@ Dự án theo chuẩn **Conventional Commits**.
 
 ### Scope (tuỳ chọn)
 
-Là module bị ảnh hưởng: `auth`, `booking`, `venue`, `court`, `payment`, `staff`, `notification`, `user`
+Là module bị ảnh hưởng: `auth`, `booking`, `branch`, `court`, `slot`, `payment`, `staff`, `dashboard`, `notification`, `user`
 
 ### Ví dụ thực tế
 
 ```bash
 # Thêm tính năng
-feat(booking): add create booking endpoint
+feat(booking): add slot hold endpoint with 5-minute expiry
+feat(branch): add bank account config for branch
+feat(payment): add bill upload and admin confirm flow
+feat(auth): add jwt middleware and role guard
 
 # Sửa bug
-fix(auth): resolve null pointer exception on empty email login
+fix(booking): prevent double booking on same slot
+fix(auth): resolve null pointer on empty email login
 
 # Viết test
-test(booking): add unit test for BookingService.createBooking
+test(booking): add unit test for SlotHoldService
+test(payment): add unit test for bill upload validation
 
 # Database migration
-chore(db): add flyway migration V3 for booking table
+chore(db): add flyway migration V2 for slot_holds table
 
 # Cập nhật docs
-docs: update API endpoint documentation for booking module
+docs: update readme with local setup guide
 
 # Refactor
-refactor(payment): extract deposit calculation logic to separate method
+refactor(slot): extract slot generation logic to SlotTemplateService
 ```
 
 **Quy tắc viết commit:**
@@ -123,19 +127,18 @@ refactor(payment): extract deposit calculation logic to separate method
    git pull origin dev
 
 2. Tạo branch mới từ dev
-   git checkout -b feature/SBA301-15_manage-product
+   git checkout -b feature/manage-branch
 
 3. Code, commit thường xuyên
    git add .
-   git commit -m "feat(product): add product entity and repository"
+   git commit -m "feat(branch): add branch entity and repository"
 
 4. Push branch lên remote
-   git push origin feature/SBA301-15_manage-product
+   git push origin feature/manage-branch
 
 5. Tạo Pull Request vào dev trên GitHub
    - Điền PR title và description (xem mục 5)
    - Assign reviewer (tối thiểu 1 người)
-   - Link Jira ticket trong PR description
 
 6. Sau khi được approve → Merge PR
    - Dùng "Squash and merge" cho feature branch
@@ -146,25 +149,25 @@ refactor(payment): extract deposit calculation logic to separate method
 
 ## 5. Pull Request Convention
 
-**PR Title:** `[SBA301-XX] feat(scope): mô tả ngắn gọn`
+**PR Title:** `feat(scope): mô tả ngắn gọn`
 
 ```
-[SBA301-15] feat(product): implement manage product CRUD
+feat(branch): implement branch CRUD API
 ```
 
 **PR Description Template:**
 
 ```markdown
-## Jira Ticket
-[SBA301-15](link-to-jira-ticket)
-
 ## Changes
 - Mô tả ngắn những gì đã thay đổi
 
 ## Checklist
 - [ ] Tự review code trước khi tạo PR
 - [ ] Không có conflict với branch dev
+- [ ] Unit test pass
+- [ ] Build pass (CI xanh)
 - [ ] Đã update Jira ticket sang In Review
+- [ ] Đã tạo ticket Request Review Coding assign Nguyên
 ```
 
 **Code Review Rules:**
@@ -183,26 +186,32 @@ Push feature branch
         ▼
   GitHub Actions chạy CI
         │
-        ├── Build pass?  ──► Fail → không được merge
-        ├── Unit test pass? ──► Fail → không được merge
+        ├── Build pass?        ──► Fail → không được merge
+        ├── Unit test pass?    ──► Fail → không được merge
         └── 1 approval từ reviewer? ──► Chưa có → không được merge
                 │
                 ▼
            Merge vào dev
 ```
 
-### Các bước CI chạy trên PR vào `dev`
+### Backend (Spring Boot)
 
-| Bước | Mô tả | Fail thì sao |
-|------|-------|--------------|
+| Bước | Command | Fail thì sao |
+|------|---------|--------------|
 | **Build** | `mvn clean package -DskipTests` | Block merge |
-| **Unit Test** | `mvn test` — chạy toàn bộ unit test | Block merge |
-| **Code Review** | Tối thiểu 1 approval từ thành viên khác | Block merge |
+| **Unit Test** | `mvn test` | Block merge |
+
+### Frontend (React)
+
+| Bước | Command | Fail thì sao |
+|------|---------|--------------|
+| **Build** | `npm run build` | Block merge |
+| **Lint** | `npm run lint` | Block merge |
 
 ### Quy tắc
-- **Không bypass CI** — không dùng `[skip ci]` trong commit message để tránh chạy test
-- Nếu CI fail, dev phải fix trước khi được merge, không nhờ người khác approve để bypass
-- Branch phải được **rebase hoặc merge từ `dev` mới nhất** trước khi tạo PR (tránh conflict)
+- **Không bypass CI** — không dùng `[skip ci]` trong commit message
+- Nếu CI fail, dev phải fix trước khi được merge
+- Branch phải được **rebase hoặc merge từ `dev` mới nhất** trước khi tạo PR
 
 ---
 
@@ -211,17 +220,18 @@ Push feature branch
 ```bash
 # Bắt đầu task mới
 git checkout dev && git pull origin dev
-git checkout -b feature/SBA301-{ticket-id}_{short-desc}
+git checkout -b feature/{short-desc}
 
 # Commit
-git commit -m "feat(booking): add create booking endpoint"
-git commit -m "fix(auth): resolve otp expiry not checked on guest flow"
-git commit -m "test(venue): add unit test for VenueService.createBranch"
+git commit -m "feat(booking): add slot hold with 5-minute session expiry"
+git commit -m "fix(payment): fix bill upload not accepting png format"
+git commit -m "test(booking): add unit test for SlotHoldService"
 git commit -m "chore(db): add flyway migration V{n} for {table}"
 
 # Push và tạo PR
-git push origin feature/SBA301-{ticket-id}_{short-desc}
+git push origin feature/{short-desc}
 # → Tạo PR trên GitHub vào branch dev
 # → CI chạy tự động — chờ build + test xanh
+# → Tạo ticket Request Review Coding assign Nguyên
 # → Cập nhật Jira ticket sang In Review
 ```
