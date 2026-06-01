@@ -3,7 +3,18 @@ Table court_types {
   name       varchar(100) [not null, unique]
   created_at timestamptz  [not null]
   updated_at timestamptz  [not null]
-  Note: 'Khoa — reference data, Super-Admin managed, no soft delete'
+}
+
+Table subscription_plans {
+  id            bigint          [pk, increment]
+  name          varchar(100)    [not null, unique]
+  price         "numeric(10,2)" [not null]
+  max_courts    int             [not null]
+  max_branches  int             [not null]
+  duration_days int             [not null]
+  is_active     boolean         [not null, default: true]
+  created_at    timestamptz     [not null]
+  updated_at    timestamptz     [not null]
 }
 
 Table users {
@@ -11,36 +22,24 @@ Table users {
   email         varchar(255) [not null, unique]
   password_hash varchar(255) [not null]
   phone         varchar(20)
-  role          varchar(20)  [not null, note: 'CUSTOMER | STAFF | ADMIN | SUPER_ADMIN']
-  status        varchar(20)  [not null, default: 'PENDING_APPROVAL', note: 'PENDING_APPROVAL | ACTIVE | INACTIVE | LOCKED']
+  role          varchar(20)  [not null]
+  status        varchar(20)  [not null, default: 'PENDING_APPROVAL']
   created_at    timestamptz  [not null]
   updated_at    timestamptz  [not null]
   deleted_at    timestamptz
-
-  indexes {
-    (email) [name: 'idx_users_email_active', note: 'WHERE deleted_at IS NULL']
-    phone
-    role
-  }
-  Note: 'Khoa — registered accounts only (guests book via bookings.guest_phone)'
 }
 
 Table subscriptions {
   id           bigint      [pk, increment]
   admin_id     bigint      [not null, ref: > users.id]
-  plan         varchar(50) [not null]
+  plan_id      bigint      [not null, ref: > subscription_plans.id]
   max_courts   int         [not null]
   max_branches int         [not null]
   start_date   date        [not null]
   end_date     date        [not null]
   created_at   timestamptz [not null]
   updated_at   timestamptz [not null]
-  deleted_at   timestamptz [note: 'soft delete on cancellation']
-
-  indexes {
-    admin_id
-  }
-  Note: 'Khoa — Admin platform plan (month/year, by courts/branches)'
+  deleted_at   timestamptz
 }
 
 Table branches {
@@ -48,6 +47,7 @@ Table branches {
   admin_id            bigint       [not null, ref: > users.id]
   name                varchar(150) [not null]
   address             varchar(255) [not null]
+  ward                varchar(100)
   city                varchar(100) [not null]
   phone               varchar(20)
   open_time           time         [not null]
@@ -55,16 +55,11 @@ Table branches {
   bank_account_number varchar(50)
   bank_account_name   varchar(150)
   bank_name           varchar(100)
-  status              varchar(20)  [not null, default: 'ACTIVE', note: 'ACTIVE | INACTIVE']
+  bank_qr_image_url   text
+  status              varchar(20)  [not null, default: 'ACTIVE']
   created_at          timestamptz  [not null]
   updated_at          timestamptz  [not null]
   deleted_at          timestamptz
-
-  indexes {
-    admin_id
-    (city) [name: 'idx_branches_city_active', note: 'WHERE deleted_at IS NULL']
-  }
-  Note: 'Khoa — physical location owned by an Admin; holds bank account for transfers'
 }
 
 Table courts {
@@ -73,16 +68,11 @@ Table courts {
   name          varchar(150) [not null]
   court_type_id bigint       [not null, ref: > court_types.id]
   description   text
-  status        varchar(20)  [not null, default: 'ACTIVE', note: 'ACTIVE | INACTIVE | MAINTENANCE']
+  image_url     text
+  status        varchar(20)  [not null, default: 'ACTIVE']
   created_at    timestamptz  [not null]
   updated_at    timestamptz  [not null]
   deleted_at    timestamptz
-
-  indexes {
-    (branch_id) [name: 'idx_courts_branch_active', note: 'WHERE deleted_at IS NULL']
-    court_type_id
-  }
-  Note: 'Khoa — a single court inside a branch'
 }
 
 Table time_slot_templates {
@@ -91,16 +81,11 @@ Table time_slot_templates {
   start_time  time            [not null]
   end_time    time            [not null]
   price       "numeric(10,2)" [not null]
-  day_of_week smallint        [not null, note: '0..6 (0 = Sunday)']
-  is_active   boolean         [not null, default: true, note: 'false = temporarily locked (maintenance/holiday)']
+  day_of_week smallint        [not null]
+  is_active   boolean         [not null, default: true]
   created_at  timestamptz     [not null]
   updated_at  timestamptz     [not null]
   deleted_at  timestamptz
-
-  indexes {
-    (court_id, day_of_week) [name: 'idx_time_slot_templates_court_dow', note: 'WHERE is_active = TRUE AND deleted_at IS NULL']
-  }
-  Note: 'Khoa — recurring 30-min priced slots per court & weekday'
 }
 
 Table staff {
@@ -110,76 +95,62 @@ Table staff {
   created_at timestamptz [not null]
   updated_at timestamptz [not null]
   deleted_at timestamptz
-
-  indexes {
-    branch_id
-  }
-  Note: 'Khoa — links a STAFF user to their branch (1 user = 1 staff record)'
 }
 
 Table bookings {
   id          bigint          [pk, increment]
   court_id    bigint          [not null, ref: > courts.id]
-  customer_id bigint          [ref: > users.id, note: 'null for guest booking']
-  guest_phone varchar(20)     [note: 'required when customer_id is null']
+  customer_id bigint          [ref: > users.id]
+  payment_id  bigint          [ref: > payments.id]
+  guest_phone varchar(20)
   date        date            [not null]
-  status      varchar(25)     [not null, default: 'PENDING_PAYMENT', note: 'PENDING_PAYMENT | AWAITING_CONFIRMATION | CONFIRMED | CHECKED_IN | COMPLETED | CANCELLED']
+  status      varchar(25)     [not null, default: 'PENDING_PAYMENT']
   total_price "numeric(10,2)" [not null]
   created_at  timestamptz     [not null]
   updated_at  timestamptz     [not null]
-
-  indexes {
-    court_id
-    customer_id
-    (court_id, date)
-  }
-  Note: 'Minh — 1+ consecutive slots on one court. CHECK: customer_id OR guest_phone NOT NULL'
 }
 
 Table booking_slots {
   id               bigint          [pk, increment]
   booking_id       bigint          [not null, ref: > bookings.id]
+  court_id         bigint          [not null, ref: > courts.id]
+  booking_date     date            [not null]
   slot_start       time            [not null]
   slot_end         time            [not null]
-  price_at_booking "numeric(10,2)" [not null, note: 'snapshot price at booking time — preserved when admin changes template prices later']
+  price_at_booking "numeric(10,2)" [not null]
   created_at       timestamptz     [not null]
   updated_at       timestamptz     [not null]
 
   indexes {
-    booking_id
+    (court_id, booking_date, slot_start) [unique, name: 'uq_booking_slots_court_date_start']
   }
-  Note: 'Minh — individual 30-min slots of a booking (ON DELETE CASCADE)'
 }
 
 Table slot_holds {
-  id         bigint      [pk, increment]
-  court_id   bigint      [not null, ref: > courts.id]
-  date       date        [not null]
-  slot_start time        [not null]
-  slot_end   time        [not null]
-  expired_at timestamptz [not null]
-  created_at timestamptz [not null]
-  updated_at timestamptz [not null]
+  id          bigint      [pk, increment]
+  court_id    bigint      [not null, ref: > courts.id]
+  customer_id bigint      [ref: > users.id]
+  guest_phone varchar(20)
+  date        date        [not null]
+  slot_start  time        [not null]
+  slot_end    time        [not null]
+  expired_at  timestamptz [not null]
+  created_at  timestamptz [not null]
+  updated_at  timestamptz [not null]
 
   indexes {
-    (court_id, date, expired_at) [name: 'idx_slot_holds_court_date_exp']
+    (court_id, date, slot_start)  [unique, name: 'uq_slot_holds_court_date_start']
   }
-  Note: 'Minh — 5-min lock while customer transfers payment'
 }
 
 Table payments {
   id             bigint          [pk, increment]
-  booking_id     bigint          [not null, unique, ref: > bookings.id]
-  amount         "numeric(10,2)" [not null, note: 'actual transferred amount — may differ from bookings.total_price']
+  branch_id      bigint          [not null, ref: > branches.id]
+  amount         "numeric(10,2)" [not null]
   bill_image_url text
-  status         varchar(20)     [not null, default: 'PENDING', note: 'PENDING | CONFIRMED | REJECTED']
+  status         varchar(20)     [not null, default: 'PENDING']
   confirmed_at   timestamptz
-  confirmed_by   bigint          [ref: > users.id, note: 'admin/staff who confirmed']
+  confirmed_by   bigint          [ref: > users.id]
   created_at     timestamptz     [not null]
   updated_at     timestamptz     [not null]
-
-  indexes {
-    confirmed_by
-  }
-  Note: 'Minh — 1 bill per booking (ON DELETE CASCADE). UNIQUE booking_id enforces 1:1'
 }
