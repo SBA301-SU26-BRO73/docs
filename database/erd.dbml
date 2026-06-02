@@ -1,0 +1,156 @@
+Table court_types {
+  id         bigint       [pk, increment]
+  name       varchar(100) [not null, unique]
+  created_at timestamptz  [not null]
+  updated_at timestamptz  [not null]
+}
+
+Table subscription_plans {
+  id            bigint          [pk, increment]
+  name          varchar(100)    [not null, unique]
+  price         "numeric(10,2)" [not null]
+  max_courts    int             [not null]
+  max_branches  int             [not null]
+  duration_days int             [not null]
+  is_active     boolean         [not null, default: true]
+  created_at    timestamptz     [not null]
+  updated_at    timestamptz     [not null]
+}
+
+Table users {
+  id            bigint       [pk, increment]
+  email         varchar(255) [not null, unique]
+  password_hash varchar(255) [not null]
+  phone         varchar(20)
+  role          varchar(20)  [not null]
+  status        varchar(20)  [not null, default: 'PENDING_APPROVAL']
+  created_at    timestamptz  [not null]
+  updated_at    timestamptz  [not null]
+  deleted_at    timestamptz
+}
+
+Table subscriptions {
+  id           bigint      [pk, increment]
+  admin_id     bigint      [not null, ref: > users.id]
+  plan_id      bigint      [not null, ref: > subscription_plans.id]
+  max_courts   int         [not null]
+  max_branches int         [not null]
+  start_date   date        [not null]
+  end_date     date        [not null]
+  created_at   timestamptz [not null]
+  updated_at   timestamptz [not null]
+  deleted_at   timestamptz
+}
+
+Table branches {
+  id                  bigint       [pk, increment]
+  admin_id            bigint       [not null, ref: > users.id]
+  name                varchar(150) [not null]
+  address             varchar(255) [not null]
+  ward                varchar(100)
+  city                varchar(100) [not null]
+  phone               varchar(20)
+  open_time           time         [not null]
+  close_time          time         [not null]
+  bank_account_number varchar(50)
+  bank_account_name   varchar(150)
+  bank_name           varchar(100)
+  bank_qr_image_url   text
+  status              varchar(20)  [not null, default: 'ACTIVE']
+  created_at          timestamptz  [not null]
+  updated_at          timestamptz  [not null]
+  deleted_at          timestamptz
+}
+
+Table courts {
+  id            bigint       [pk, increment]
+  branch_id     bigint       [not null, ref: > branches.id]
+  name          varchar(150) [not null]
+  court_type_id bigint       [not null, ref: > court_types.id]
+  description   text
+  image_url     text
+  status        varchar(20)  [not null, default: 'ACTIVE']
+  created_at    timestamptz  [not null]
+  updated_at    timestamptz  [not null]
+  deleted_at    timestamptz
+}
+
+Table time_slot_templates {
+  id          bigint          [pk, increment]
+  court_id    bigint          [not null, ref: > courts.id]
+  start_time  time            [not null]
+  end_time    time            [not null]
+  price       "numeric(10,2)" [not null]
+  day_of_week smallint        [not null]
+  is_active   boolean         [not null, default: true]
+  created_at  timestamptz     [not null]
+  updated_at  timestamptz     [not null]
+  deleted_at  timestamptz
+}
+
+Table staff {
+  id         bigint      [pk, increment]
+  user_id    bigint      [not null, unique, ref: > users.id]
+  branch_id  bigint      [not null, ref: > branches.id]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  deleted_at timestamptz
+}
+
+Table bookings {
+  id          bigint          [pk, increment]
+  court_id    bigint          [not null, ref: > courts.id]
+  customer_id bigint          [ref: > users.id]
+  payment_id  bigint          [ref: > payments.id]
+  guest_phone varchar(20)
+  date        date            [not null]
+  status      varchar(25)     [not null, default: 'PENDING_PAYMENT']
+  total_price "numeric(10,2)" [not null]
+  created_at  timestamptz     [not null]
+  updated_at  timestamptz     [not null]
+}
+
+Table booking_slots {
+  id               bigint          [pk, increment]
+  booking_id       bigint          [not null, ref: > bookings.id]
+  court_id         bigint          [not null, ref: > courts.id]
+  booking_date     date            [not null]
+  slot_start       time            [not null]
+  slot_end         time            [not null]
+  price_at_booking "numeric(10,2)" [not null]
+  created_at       timestamptz     [not null]
+  updated_at       timestamptz     [not null]
+
+  indexes {
+    (court_id, booking_date, slot_start) [unique, name: 'uq_booking_slots_court_date_start']
+  }
+}
+
+Table slot_holds {
+  id          bigint      [pk, increment]
+  court_id    bigint      [not null, ref: > courts.id]
+  customer_id bigint      [ref: > users.id]
+  guest_phone varchar(20)
+  date        date        [not null]
+  slot_start  time        [not null]
+  slot_end    time        [not null]
+  expired_at  timestamptz [not null]
+  created_at  timestamptz [not null]
+  updated_at  timestamptz [not null]
+
+  indexes {
+    (court_id, date, slot_start)  [unique, name: 'uq_slot_holds_court_date_start']
+  }
+}
+
+Table payments {
+  id             bigint          [pk, increment]
+  branch_id      bigint          [not null, ref: > branches.id]
+  amount         "numeric(10,2)" [not null]
+  bill_image_url text
+  status         varchar(20)     [not null, default: 'PENDING']
+  confirmed_at   timestamptz
+  confirmed_by   bigint          [ref: > users.id]
+  created_at     timestamptz     [not null]
+  updated_at     timestamptz     [not null]
+}
